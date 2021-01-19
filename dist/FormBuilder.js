@@ -155,7 +155,10 @@ function AppAutocomplete(props) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [filteredOptions, setFilteredOptions] = useState(options);
     const isSelected = (value) => {
-        return watch(name)?.some((o) => o == value);
+        if (multiple) {
+            return watch(name)?.some((o) => o == value);
+        }
+        return watch(name) === value;
     };
     const onItemSelect = (value) => {
         if (!multiple) {
@@ -232,7 +235,7 @@ function AppAutocomplete(props) {
         }
     }} initialNumToRender={10} maxToRenderPerBatch={20} extraData={watch(name)} keyboardShouldPersistTaps={'handled'} data={filteredOptions} keyExtractor={(item) => `${item.value}`} renderItem={({ item }) => (<Fragment>
                   <Fragment key={item.value}>
-                    <List.Item onPress={onItemSelect} title={<Subheading style={{
+                    <List.Item onPress={() => onItemSelect(item.value)} title={<Subheading style={{
         color: isSelected(item.value)
             ? colors.primary
             : undefined,

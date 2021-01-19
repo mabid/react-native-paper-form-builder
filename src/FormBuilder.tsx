@@ -310,7 +310,10 @@ function AppAutocomplete(props: any) {
   const [filteredOptions, setFilteredOptions] = useState(options);
 
   const isSelected = (value: any) => {
-    return watch(name)?.some((o: any) => o == value);
+    if (multiple) {
+      return watch(name)?.some((o: any) => o == value);
+    }
+    return watch(name) === value;
   };
   const onItemSelect = (value: any) => {
     if (!multiple) {
@@ -433,7 +436,7 @@ function AppAutocomplete(props: any) {
                 <Fragment>
                   <Fragment key={item.value}>
                     <List.Item
-                      onPress={onItemSelect}
+                      onPress={() => onItemSelect(item.value)}
                       title={
                         <Subheading
                           style={{
