@@ -24,6 +24,7 @@ function FormBuilder(props) {
             propsInput.name = input.name;
             propsInput.setValue = form.setValue;
             propsInput.watch = form.watch;
+            propsInput.multiple = input.multiple || false;
             propsInput.triggerValidation = form.triggerValidation || form.trigger;
             propsInput.loadOptions = input.loadOptions;
         }
@@ -146,11 +147,32 @@ function AppDropdown(props) {
 }
 function AppAutocomplete(props) {
     const { colors } = useTheme();
-    const { mode, options, setValue, name, watch, triggerValidation, label, Input, disabled, loadOptions, } = props;
+    const { mode, options, setValue, name, watch, triggerValidation, label, Input, disabled, loadOptions, multiple, } = props;
     const [displayValue, setDisplayValue] = useState('');
     const [searchValue, setSearchValue] = useState('');
     const [showDropdown, setShowDropdown] = useState(false);
     const [filteredOptions, setFilteredOptions] = useState(options);
+    const isSelected = (value) => {
+        return watch(name)?.some((o) => o == value);
+    };
+    const onItemSelect = (value) => {
+        if (!multiple) {
+            setValue(name, value);
+            setShowDropdown(false);
+            return;
+        }
+        if (watch(name) === undefined) {
+            setValue(name, [value]);
+        }
+        else {
+            if (watch(name)?.includes(value)) {
+                setValue(name, watch(name).filter((o) => o !== value));
+            }
+            else {
+                setValue(name, [...watch(name), value]);
+            }
+        }
+    };
     useEffect(() => {
         if (watch(name) === '') {
             return setDisplayValue('');
@@ -158,8 +180,16 @@ function AppAutocomplete(props) {
         else {
             triggerValidation(name);
         }
-        const activeOption = options.find((option) => option.value === watch(name));
-        setDisplayValue(activeOption?.label);
+        if (!multiple) {
+            const activeOption = options.find((option) => option.value === watch(name));
+            setDisplayValue(activeOption?.label);
+        }
+        else {
+            const activeOptions = options.filter((option) => watch(name)?.some((o) => {
+                return o === option.value;
+            }));
+            setDisplayValue(activeOptions?.map((o) => o.label).join(', '));
+        }
     }, [watch(name)]);
     useEffect(() => {
         if (searchValue.trim()) {
@@ -200,11 +230,8 @@ function AppAutocomplete(props) {
         }
     }} initialNumToRender={10} maxToRenderPerBatch={20} extraData={watch(name)} keyboardShouldPersistTaps={'handled'} data={filteredOptions} keyExtractor={(item) => `${item.value}`} renderItem={({ item }) => (<Fragment>
                   <Fragment key={item.value}>
-                    <List.Item onPress={() => {
-        setValue(name, item.value);
-        setShowDropdown(false);
-    }} title={<Subheading style={{
-        color: watch(name) === item.value
+                    <List.Item onPress={onItemSelect} title={<Subheading style={{
+        color: isSelected(item.value)
             ? colors.primary
             : undefined,
     }}>

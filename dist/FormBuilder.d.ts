@@ -7,6 +7,7 @@ export declare type FormConfigType = {
     name: string;
     type: 'input' | 'select' | 'autocomplete' | 'checkbox' | 'radio' | 'switch' | 'custom';
     variant?: 'outlined' | 'flat';
+    multiple?: boolean;
     options?: Array<{
         value: string | number;
         label: string;

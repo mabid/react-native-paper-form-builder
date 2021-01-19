@@ -42,6 +42,7 @@ export type FormConfigType = {
     | 'switch'
     | 'custom';
   variant?: 'outlined' | 'flat';
+  multiple?: boolean;
   options?: Array<{
     value: string | number;
     label: string;
@@ -99,6 +100,7 @@ function FormBuilder(props: FormBuilderPropType) {
       propsInput.name = input.name;
       propsInput.setValue = form.setValue;
       propsInput.watch = form.watch;
+      propsInput.multiple = input.multiple || false;
       propsInput.triggerValidation = form.triggerValidation || form.trigger;
       propsInput.loadOptions = input.loadOptions;
     }
@@ -298,22 +300,55 @@ function AppAutocomplete(props: any) {
     Input,
     disabled,
     loadOptions,
+    multiple,
   } = props;
   const [displayValue, setDisplayValue] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState(options);
 
+  const isSelected = (value: any) => {
+    return watch(name)?.some((o: any) => o == value);
+  };
+  const onItemSelect = (value: any) => {
+    if (!multiple) {
+      setValue(name, value);
+      setShowDropdown(false);
+      return;
+    }
+    if (watch(name) === undefined) {
+      setValue(name, [value]);
+    } else {
+      if (watch(name)?.includes(value)) {
+        setValue(
+          name,
+          watch(name).filter((o: any) => o !== value),
+        );
+      } else {
+        setValue(name, [...watch(name), value]);
+      }
+    }
+  };
   useEffect(() => {
     if (watch(name) === '') {
       return setDisplayValue('');
     } else {
       triggerValidation(name);
     }
-    const activeOption = options.find(
-      (option: any) => option.value === watch(name),
-    );
-    setDisplayValue(activeOption?.label);
+
+    if (!multiple) {
+      const activeOption = options.find(
+        (option: any) => option.value === watch(name),
+      );
+      setDisplayValue(activeOption?.label);
+    } else {
+      const activeOptions = options.filter((option: any) =>
+        watch(name)?.some((o: any) => {
+          return o === option.value;
+        }),
+      );
+      setDisplayValue(activeOptions?.map((o: any) => o.label).join(', '));
+    }
   }, [watch(name)]);
 
   useEffect(() => {
@@ -396,17 +431,13 @@ function AppAutocomplete(props: any) {
                 <Fragment>
                   <Fragment key={item.value}>
                     <List.Item
-                      onPress={() => {
-                        setValue(name, item.value);
-                        setShowDropdown(false);
-                      }}
+                      onPress={onItemSelect}
                       title={
                         <Subheading
                           style={{
-                            color:
-                              watch(name) === item.value
-                                ? colors.primary
-                                : undefined,
+                            color: isSelected(item.value)
+                              ? colors.primary
+                              : undefined,
                           }}>
                           {item.label}
                         </Subheading>
