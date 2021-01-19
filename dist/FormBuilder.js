@@ -7,7 +7,9 @@ function FormBuilder(props) {
     const { colors } = useTheme();
     const Input = CustomInput ? CustomInput : TextInput;
     useEffect(() => {
-        console.log('Render called...', form.errors);
+        if (Object.keys(form.errors).length !== 0) {
+            console.log('Render called...', form.errors);
+        }
     });
     const onChange = (args) => args[0].nativeEvent.text;
     const inputSelector = (input) => {

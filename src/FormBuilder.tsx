@@ -80,7 +80,9 @@ function FormBuilder(props: FormBuilderPropType) {
   const Input: any = CustomInput ? CustomInput : TextInput;
 
   useEffect(() => {
-    console.log('Render called...', form.errors);
+    if (Object.keys(form.errors).length !== 0) {
+      console.log('Render called...', form.errors);
+    }
   });
 
   const onChange = (args: any) => args[0].nativeEvent.text;
