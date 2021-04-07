@@ -273,7 +273,7 @@ function AppDropdown(props: any) {
                       color:
                         watch(name) === option.value
                           ? colors.primary
-                          : undefined,
+                          : colors.text,
                     }}>
                     {option.label}
                   </Subheading>
