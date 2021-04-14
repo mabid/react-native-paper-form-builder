@@ -80,22 +80,24 @@ function FormBuilder(props: FormBuilderPropType) {
   const Input: any = CustomInput ? CustomInput : TextInput;
 
   useEffect(() => {
-    if (Object.keys(form.errors).length !== 0) {
-      console.log('Render called...', form.errors);
+    if (Object.keys(form.formState.errors).length !== 0) {
+      console.log('Render called...', form.formState.errors);
     }
   });
 
-  const onChange = (args: any) => args[0].nativeEvent.text;
-
-  const inputSelector = (input: FormConfigType) => {
+  const inputSelector = (formParam, input: FormConfigType) => {
     const JSX: any = input.jsx;
     const propsInput: any = {
       label: input.label,
-      error: form.errors[input.name] && form.errors[input.name]?.message,
+      error: form.formState.errors && form.formState.errors[input.name] && form.formState.errors[input.name]?.message,
       mode: input.variant,
       ...input.textInputProps,
     };
 
+    if (input.type === 'input') {
+        propsInput.onChangeText = formParam.field.onChange;
+        propsInput.value = form.getValues(input.name);
+    }
     if (input.type === 'select' || input.type === 'autocomplete') {
       propsInput.mode = input.variant;
       propsInput.options = input.options;
@@ -120,59 +122,63 @@ function FormBuilder(props: FormBuilderPropType) {
 
     switch (input.type) {
       case 'input': {
-        return <Input {...propsInput} />;
+        return (<Input {...propsInput} />);
       }
       case 'select': {
-        return <AppDropdown {...propsInput} Input={Input} />;
+        return (<AppDropdown {...propsInput} Input={Input} />);
       }
       case 'autocomplete': {
-        return <AppAutocomplete {...propsInput} Input={Input} />;
+        return (<AppAutocomplete {...propsInput} Input={Input} />);
       }
       case 'checkbox': {
-        return <AppCheckbox {...propsInput} />;
+        return (<AppCheckbox {...propsInput} />);
       }
       case 'radio': {
-        return <AppCheckbox {...propsInput} radio />;
+        return (<AppCheckbox {...propsInput} radio />);
       }
       case 'switch': {
-        return <AppSwitch {...propsInput} radio />;
+        return (<AppSwitch {...propsInput} radio />);
       }
       case 'custom': {
         //@ts-ignore
-        return <JSX {...input} />;
+        return (<JSX {...input} />);
       }
       default: {
-        return <Input {...propsInput} />;
+        return (<Input {...propsInput} />);
       }
     }
   };
 
-  const renderAppBuilderItem = (input: FormConfigType, index: number) => (
+  const renderAppBuilderItem = (input: FormConfigType, index: number) => {
+    
+    return (
     <View
       key={index}
       style={{
         marginBottom: input.type === 'custom' ? 0 : 15,
         ...inputViewStyle,
       }}>
+        
       <Controller
         //@ts-ignore
-        as={inputSelector(input)}
+        render={(param) => inputSelector(param, input)}
         name={input.name}
         rules={input.rules}
         control={form.control}
-        onChange={onChange}
       />
-      {form.errors[input.name] && input.type !== 'custom' && (
+
+      {form.formState.errors && form.formState.errors[input.name] && input.type !== 'custom' && (
         <HelperText
           style={{
             color: colors.error,
             ...helperTextStyle,
           }}>
-          {form.errors[input.name]?.message}
+          {form.formState.errors[input.name]?.message}
         </HelperText>
       )}
     </View>
-  );
+  )};
+
 
   return (
     <Fragment>
